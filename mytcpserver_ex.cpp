@@ -1,7 +1,6 @@
 #include "mytcpserver_ex.h"
 #include <QDebug>
 #include <QCoreApplication>
-#include "fun_ex.h"
 
 
 MyTcpServer::~MyTcpServer()
@@ -21,6 +20,7 @@ MyTcpServer::MyTcpServer(QObject *parent) : QObject(parent){
         server_status=1;
         qDebug() << "server is started";
     }
+
 }
 
 void MyTcpServer::slotNewConnection(){
@@ -29,6 +29,7 @@ void MyTcpServer::slotNewConnection(){
         newCon = mTcpServer->nextPendingConnection();
         connect(newCon,&QTcpSocket::readyRead,this,&MyTcpServer::slotServerRead);
         connect(newCon, &QTcpSocket::disconnected,this,&MyTcpServer::slotClientDisconnected);
+
         user.push_back(newCon);
     }
 }
@@ -40,14 +41,68 @@ void MyTcpServer::slotServerRead(){
     QByteArray arr;
     quest.clear();
     arr.clear();
-    int key;
+
     while(Socket_read->bytesAvailable()>0){
         arr = Socket_read->readAll();
         quest.append(arr);
     }
     arr.clear();
-
+    parce(quest);
     sendToClient(quest.toUtf8());
+}
+
+void MyTcpServer::parce(QString arr)
+{
+    arr=arr.trimmed();
+    QStringList zap = arr.split("&");
+
+    if(zap[0]=="start")
+    {
+
+        zap.removeFirst();
+
+        QString login = zap[0];
+        QString roomname = zap[1];
+        if(rooms.contains(roomname))
+        {
+            rooms[roomname]+=1;
+        }
+        else
+        {
+            rooms.insert(roomname,1);
+        }
+        qDebug()<<rooms;
+
+        if(rooms[roomname]>=7)
+        {
+            rooms[roomname]=0;
+        }
+
+    }
+    else if(zap[0]=="break")
+    {
+        QTcpSocket * disSoc = (QTcpSocket*)sender();
+        int k = user.count();
+        for(int i = 0; i<k;i++){
+            if(disSoc == user.at(i)){
+                user.at(i)->close();
+                user.removeAt(i);
+                break;
+            }
+        }
+    }
+    else if(zap[0]=="starts")
+    {
+
+    }
+    else if(zap[0]=="rooms")
+    {
+
+    }
+    else if(zap[0]=="newroom")
+    {
+
+    }
 }
 
 void MyTcpServer::sendToClient(QString otvet)

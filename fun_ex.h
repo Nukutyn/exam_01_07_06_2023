@@ -14,5 +14,6 @@
 
 QByteArray parce(int,QString);
 
+QString start(QStringList);
 
 #endif // FUN_EX_H
