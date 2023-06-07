@@ -48,7 +48,6 @@ void MyTcpServer::slotServerRead(){
     }
     arr.clear();
     parce(quest);
-    sendToClient(quest.toUtf8());
 }
 
 void MyTcpServer::parce(QString arr)
@@ -81,26 +80,31 @@ void MyTcpServer::parce(QString arr)
     }
     else if(zap[0]=="break")
     {
-        QTcpSocket * disSoc = (QTcpSocket*)sender();
-        int k = user.count();
-        for(int i = 0; i<k;i++){
-            if(disSoc == user.at(i)){
-                user.at(i)->close();
-                user.removeAt(i);
-                break;
-            }
-        }
+        QTcpSocket *Socket_read = (QTcpSocket*)sender();
+        Socket_read->close(); // закрыть сокет
+        return;
     }
-    else if(zap[0]=="starts")
+    else if(zap[0]=="stats")
     {
-
+        int k=0;
+        for(int i = 0;i<user.count();i++)
+        {
+            k+=i;
+        }
+        sendToClient(QString::number(k));
     }
     else if(zap[0]=="rooms")
     {
 
+        for(auto arr : rooms.keys())
+        {
+            sendToClient(arr);
+        }
+
     }
     else if(zap[0]=="newroom")
     {
+        rooms.insert(zap[1],0);
 
     }
 }
